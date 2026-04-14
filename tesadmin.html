@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PRASAKA MASTER | ADMIN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg: #020617;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --blue-grad: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            --green-grad: linear-gradient(135deg, #10b981, #059669);
+            --red-grad: linear-gradient(135deg, #ef4444, #b91c1c);
+            --orange-grad: linear-gradient(135deg, #f59e0b, #b45309);
+            --purple-grad: linear-gradient(135deg, #8b5cf6, #4338ca);
+            --primary: #38bdf8; --danger: #fb7185; --success: #4ade80;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; } 
+
+        /* ================= AUTH STYLES ================= */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .auth-card { background: rgba(30,41,59,0.7); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 35px; padding: 40px 30px; width: 100%; max-width: 360px; text-align: center; margin: auto; animation: slideUp 0.5s ease; }
+        .auth-title { font-size: 20px; font-weight: 900; margin-bottom: 25px; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; }
+        .auth-input { width: 100%; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 18px; color: white; margin-bottom: 15px; outline: none; font-weight: 600; text-align: center; }
+        .auth-input:focus { border-color: var(--primary); }
+        .auth-select { width: 100%; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 18px; color: white; margin-bottom: 15px; outline: none; font-weight: 600; text-align: center; appearance: none; }
+        .auth-select option { color: black; }
+        .auth-btn { width: 100%; padding: 18px; background: var(--blue-grad); border-radius: 18px; font-weight: 900; color: white; border: none; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; }
+        .auth-btn-ghost { background: transparent; border: 1px solid var(--border); color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .auth-switch { font-size: 10px; color: #94a3b8; margin-top: 15px; cursor: pointer; text-transform: uppercase; font-weight: 800; text-decoration: underline; background: none; border: none; }
+        /* =============================================== */
+
+        #main-admin-content { display: none; } 
+        #overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 99; display: none; }
+        #sidebar { position: fixed; top: 0; left: 0; height: 100%; width: 280px; background: #0a0f1e; border-right: 1px solid var(--border); z-index: 100; transform: translateX(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px 20px; display: flex; flex-direction: column; }
+        #sidebar.open { transform: translateX(0); }
+        
+        .sb-nav { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
+        .sb-link { display: flex; align-items: center; gap: 15px; padding: 18px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: white; cursor: pointer; border: none; transition: 0.2s; }
+        .sb-link:active { transform: scale(0.95); }
+        .btn-dash { background: var(--blue-grad); }
+        .btn-prof { background: var(--orange-grad); } /* Profil Color */
+        .btn-log { background: var(--purple-grad); }
+        .btn-sis { background: var(--green-grad); }
+        .btn-set { background: rgba(255,255,255,0.05); border: 1px solid var(--border); }
+        .btn-logout { background: var(--red-grad); margin-top: auto; }
+
+        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto; }
+        .btn-menu { background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 16px; color: white; cursor: pointer;}
+        main { max-width: 600px; margin: 0 auto; padding: 0 20px 50px; }
+        .page { display: none; animation: slideUp 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+        .card-stat { padding: 30px 15px; border-radius: 30px; text-align: center; color: white; }
+        .card-stat p { font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; opacity: 0.8; }
+        .card-stat h3 { font-size: 38px; font-weight: 800; }
+
+        .glass-box { background: var(--glass); border: 1px solid var(--border); border-radius: 30px; padding: 25px; }
+        .data-row { display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 15px; background: rgba(255,255,255,0.03); margin-bottom: 10px; }
+        input, textarea { width: 100%; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 18px; color: white; margin-bottom: 15px; outline: none; font-family: inherit; font-weight: 600; }
+        input:focus, textarea:focus { border-color: #38bdf8; }
+        label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; padding-left: 10px;}
+        .tag { font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,0.1); color: #38bdf8; display: inline-block; margin-right: 5px; }
+        
+        #sys-dialog { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); }
+        .glass-card-popup { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 35px; padding: 40px 30px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: scale(0.8); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #sys-dialog.active .glass-card-popup { transform: scale(1); opacity: 1; }
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .gap-3 { gap: 0.75rem; }
+        #qr-canvas { background: white; padding: 15px; border-radius: 20px; display: inline-block; margin-bottom: 20px; }
+    </style>
+</head>
+<body id="admin-body">
+
+    <div id="loading-overlay" style="position:fixed; inset:0; background:#020617; z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; color:white;">
+        <div style="width:50px; height:50px; border: 5px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; margin-bottom:20px; animation: spin 1s linear infinite;"></div>
+        <h2 style="font-weight:900; letter-spacing:3px; color:#38bdf8; font-size:12px;">MENGHUBUNGKAN SERVER...</h2>
+        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+    </div>
+
+    <div id="sys-dialog">
+        <div class="glass-card-popup" id="sys-dialog-card">
+            <div id="sys-dialog-icon" class="w-20 h-20 mx-auto mb-5 flex items-center justify-center rounded-full bg-white/5 border border-white/10" style="width: 80px; height: 80px; margin: 0 auto 20px;"></div>
+            <h3 id="sys-dialog-title" class="text-2xl font-black uppercase mb-2 tracking-tighter" style="font-size: 24px; font-weight: 900; margin-bottom: 8px;">TITLE</h3>
+            <p id="sys-dialog-msg" class="text-[11px] font-bold text-gray-400 mb-8 uppercase tracking-widest leading-relaxed" style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 32px; letter-spacing: 0.1em; line-height: 1.6;">Message</p>
+            <div id="qr-container" class="hidden"><div id="qr-canvas"></div></div>
+            <input type="text" id="sys-dialog-input" class="hidden w-full p-4 bg-black/20 border border-white/10 rounded-2xl mb-6 text-center font-bold outline-none text-white focus:border-blue-500 transition-all">
+            <div id="sys-dialog-btns" class="flex gap-3"></div>
+        </div>
+    </div>
+
+    <div id="auth-screen">
+        <div class="auth-card">
+            <div style="display:flex; justify-content:center; margin-bottom: 20px;">
+                <div style="width: 80px; height: 80px; background: rgba(56, 189, 248, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="shield-check" style="width: 40px; height: 40px; color: var(--primary);"></i>
+                </div>
+            </div>
+
+            <div id="login-form">
+                <h2 class="auth-title">OTORITAS ADMIN</h2>
+                <input type="email" id="l-email" class="auth-input" placeholder="EMAIL ADMIN">
+                <input type="password" id="l-pass" class="auth-input" placeholder="PASSWORD" style="letter-spacing: 5px;">
+                <button onclick="prosesLoginAdmin()" id="btn-login" class="auth-btn">MASUK SISTEM</button>
+                <button onclick="loginFingerprint()" class="auth-btn auth-btn-ghost"><i data-lucide="fingerprint"></i> LOGIN SIDIK JARI</button>
+                <button onclick="toggleAuth()" class="auth-switch">BUAT AKUN PELATIH BARU</button>
+            </div>
+            
+            <div id="reg-form" class="hidden">
+                <h2 class="auth-title" style="color: var(--success);">REGISTRASI ADMIN</h2>
+                <input type="text" id="r-name" class="auth-input" placeholder="NAMA LENGKAP" style="text-transform: uppercase;">
+                <input type="email" id="r-email" class="auth-input" placeholder="EMAIL AKTIF">
+                <select id="r-role" class="auth-select">
+                    <option value="" disabled selected>-- PILIH JABATAN --</option>
+                    <option value="PELATIH">PELATIH UTAMA</option>
+                    <option value="STRUKTUR">PENGURUS STRUKTUR</option>
+                </select>
+                <input type="tel" id="r-phone" class="auth-input" placeholder="NOMOR HP/WA">
+                <input type="password" id="r-pass" class="auth-input" placeholder="BUAT PASSWORD" style="letter-spacing: 5px;">
+                <button onclick="prosesRegisterAdmin()" id="btn-reg" class="auth-btn" style="background: var(--green-grad);">DAFTAR ADMIN</button>
+                <button onclick="toggleAuth()" class="auth-switch">KEMBALI KE LOGIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-admin-content">
+        <div id="overlay" onclick="toggleSidebar()"></div>
+        <div id="sidebar">
+            <h2 style="font-size: 10px; color: #38bdf8; font-weight: 800; letter-spacing: 2px;">PELATIH</h2>
+            <h1 id="admin-name-display" style="font-size: 22px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase;">ADMIN</h1>
+            <div class="sb-nav">
+                <button onclick="sw('p-dash')" class="sb-link btn-dash"><i data-lucide="layout-grid"></i> Dashboard</button>
+                <button onclick="sw('p-prof')" class="sb-link btn-prof"><i data-lucide="user"></i> Profil Admin</button>
+                <button onclick="sw('p-log')" class="sb-link btn-log"><i data-lucide="clipboard-list"></i> Laporan</button>
+                <button onclick="sw('p-sis')" class="sb-link btn-sis"><i data-lucide="users"></i> Pasukan</button>
+                <button onclick="sw('p-set')" class="sb-link btn-set"><i data-lucide="settings"></i> Settings</button>
+            </div>
+            <button onclick="logoutAdmin()" class="sb-link btn-logout"><i data-lucide="log-out"></i> Logout</button>
+        </div>
+
+        <header>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="btn-menu" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+                <div>
+                    <p style="font-size: 9px; color: #38bdf8; font-weight: 800;">HQ UNIT</p>
+                    <h1 style="font-size: 18px; font-weight: 800;">PRASAKA MASTER</h1>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div id="p-dash" class="page active">
+                <button onclick="generateDynamicQR()" class="glass-box" style="width: 100%; border: 2px dashed #38bdf8; padding: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; cursor: pointer; background: rgba(56, 189, 248, 0.05); margin-bottom: 25px;">
+                    <i data-lucide="qr-code" style="color: #38bdf8;"></i>
+                    <span style="font-weight: 800; font-size: 12px; color: #38bdf8; letter-spacing: 1px;">GENERATE QR LATIHAN</span>
+                </button>
+
+                <div class="stat-grid">
+                    <div class="card-stat" style="background: var(--blue-grad);"><p>Siswa</p><h3 id="st-siswa">0</h3></div>
+                    <div class="card-stat" style="background: var(--green-grad);"><p>Hadir</p><h3 id="st-hadir">0</h3></div>
+                    <div class="card-stat" style="background: var(--red-grad);"><p>Pending</p><h3 id="st-pend">0</h3></div>
+                    <div class="card-stat" style="background: var(--orange-grad);"><p>Rating</p><h3 id="st-pers">0%</h3></div>
+                </div>
+                <div class="glass-box">
+                    <p style="font-size: 10px; font-weight: 800; color: #fb7185; margin-bottom: 15px; display: flex; align-items:center; gap:8px;"><i data-lucide="bell-ring" style="width:16px;"></i> MENUNGGU ACC</p>
+                    <div id="list-pending"></div>
+                </div>
+            </div>
+
+            <div id="p-prof" class="page">
+                <div id="admin-profile-content"></div>
+            </div>
+
+            <div id="p-log" class="page">
+                <div class="glass-box">
+                    <p style="font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 15px; display: flex; align-items:center; gap:8px;"><i data-lucide="clipboard-list" style="width:16px;"></i> LAPORAN ABSENSI</p>
+                    <div id="tb-log"></div>
+                </div>
+            </div>
+
+            <div id="p-sis" class="page">
+                <div class="glass-box">
+                    <p style="font-size: 10px; font-weight: 800; color: #4ade80; margin-bottom: 15px; display: flex; align-items:center; gap:8px;"><i data-lucide="users" style="width:16px;"></i> DATA AKUN PASUKAN</p>
+                    <div id="grid-all"></div>
+                </div>
+            </div>
+
+            <div id="p-set" class="page">
+                <div class="glass-box">
+                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-bottom: 15px; display: flex; align-items:center; gap:8px;"><i data-lucide="sliders" style="width:16px;"></i> CONFIG SISTEM</p>
+                    
+                    <label>PENGUMUMAN (RUNNING TEXT)</label>
+                    <textarea id="s-ann" rows="2" placeholder="Teks Berjalan..."></textarea>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label>JAM LATIHAN</label><input type="time" id="s-tim"></div>
+                        <div><label>TOLERANSI (M)</label><input type="number" id="s-tol" placeholder="Toleransi"></div>
+                    </div>
+                    
+                    <label>NAMA PELATIH</label>
+                    <input type="text" id="s-com" placeholder="Nama Pelatih...">
+
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-top: 10px;">
+                        <button id="btn-save-set" onclick="save()" style="width:100%; padding:20px; background:var(--blue-grad); border-radius:20px; font-weight:800; color:white; border:none; cursor:pointer;">UPDATE CONFIG</button>
+                        <button onclick="resetJadwal()" style="width:100%; padding:15px; background:transparent; border:1px solid rgba(251,113,133,0.3); border-radius:20px; font-weight:800; color:#fb7185; cursor:pointer; font-size:10px;">KOSONGKAN JADWAL</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxieMyuN0q4QbCHIQAYj4gMKj1U-AlF2NM1Elbvs11MITj5Wrgdafblkd-YkqDFFeUJ/exec";
+        
+        let currentConfig = {};
+        let loggedInAdmin = null;
+
+        // ==========================================
+        // FUNGSI INTI: UNIVERSAL DIALOG GLASSMORPHISM
+        // ==========================================
+        function showSysDialog(opts) {
+            return new Promise((resolve) => {
+                const el = document.getElementById('sys-dialog');
+                const input = document.getElementById('sys-dialog-input');
+                const qrCont = document.getElementById('qr-container');
+                
+                document.getElementById('sys-dialog-title').innerText = opts.title || "OTORITAS";
+                document.getElementById('sys-dialog-msg').innerText = opts.msg || "";
+                document.getElementById('sys-dialog-title').style.color = opts.color || "var(--primary)";
+                
+                if(opts.showQR) { qrCont.classList.remove('hidden'); } else { qrCont.classList.add('hidden'); }
+                
+                const iconContainer = document.getElementById('sys-dialog-icon');
+                let iconName = opts.showQR ? 'qr-code' : (opts.type === 'error' ? 'shield-alert' : (opts.type === 'success' ? 'check-circle' : 'lock'));
+                iconContainer.innerHTML = `<i data-lucide="${iconName}" style="width:40px; height:40px; color: ${opts.color || 'var(--primary)'}"></i>`;
+
+                if(opts.prompt) { 
+                    input.classList.remove('hidden'); 
+                    input.value = ''; 
+                    setTimeout(() => input.focus(), 100); 
+                } else { 
+                    input.classList.add('hidden'); 
+                }
+
+                const btns = document.getElementById('sys-dialog-btns');
+                btns.innerHTML = '';
+                
+                if(opts.showCancel) {
+                    const btnC = document.createElement('button');
+                    btnC.style.cssText = "flex: 1; padding: 16px; border-radius: 16px; font-weight: 900; text-transform: uppercase; font-size: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer;";
+                    btnC.innerText = "BATAL"; 
+                    btnC.onclick = () => { closeSysDialog(); resolve(false); };
+                    btns.appendChild(btnC);
+                }
+                
+                const btnO = document.createElement('button');
+                btnO.style.cssText = "flex: 1; padding: 16px; border-radius: 16px; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #0f172a; cursor: pointer; border: none; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);";
+                btnO.style.background = opts.color || "var(--primary)";
+                btnO.innerText = opts.confirmText || "OKE";
+                btnO.onclick = () => { 
+                    const val = opts.prompt ? input.value : true; 
+                    closeSysDialog(); 
+                    resolve(val); 
+                };
+
+                if(opts.prompt) input.onkeyup = (e) => { if (e.key === 'Enter') btnO.click(); };
+                else input.onkeyup = null;
+
+                btns.appendChild(btnO);
+                el.style.display = 'flex';
+                lucide.createIcons();
+                setTimeout(() => el.classList.add('active'), 10);
+            });
+        }
+
+        function closeSysDialog() {
+            const el = document.getElementById('sys-dialog');
+            el.classList.remove('active');
+            setTimeout(() => { el.style.display = 'none'; document.getElementById('qr-canvas').innerHTML = ''; }, 300);
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('overlay');
+            sb.classList.toggle('open');
+            ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function sw(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            const sb = document.getElementById('sidebar');
+            if(sb.classList.contains('open')) toggleSidebar();
+            window.scrollTo(0,0);
+        }
+
+        function toggleAuth() { 
+            document.getElementById('login-form').classList.toggle('hidden'); 
+            document.getElementById('reg-form').classList.toggle('hidden'); 
+        }
+
+        function logoutAdmin() { 
+            localStorage.removeItem('admin_auth'); 
+            location.reload(); 
+        }
+
+        function formatJamBersih(t) { 
+            if(!t) return ""; const str = String(t); 
+            if(str.includes('T')) { const d = new Date(str); return d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); } 
+            return str.substring(0, 5); 
+        }
+
+        // ==========================================
+        // DYNAMIC QR GENERATOR
+        // ==========================================
+        async function generateDynamicQR() {
+            const jamBersih = formatJamBersih(currentConfig.waktuLatihan);
+            if(!jamBersih || jamBersih === "00:00") { await showSysDialog({title:"GAGAL", msg:"Set JAM LATIHAN dulu di menu Settings!", type:"error", color:"var(--danger)"}); return; }
+            const payload = `PRASAKA-${jamBersih}-${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}`;
+            await showSysDialog({ title: "QR LATIHAN", msg: `Berikan QR ini ke Pasukan.\nJadwal: ${jamBersih}`, showQR: true, confirmText: "TUTUP", color: "var(--primary)" });
+            new QRCode(document.getElementById("qr-canvas"), { text: payload, width: 200, height: 200, colorDark : "#020617", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+        }
+
+        // ==========================================
+        // PROFIL ADMIN & BIOMETRIK
+        // ==========================================
+        function renderAdminProfile() {
+            if(!loggedInAdmin) return;
+            document.getElementById('admin-profile-content').innerHTML = `
+                <div class="glass-box text-center" style="padding: 40px 20px;">
+                    <div style="width: 80px; height: 80px; background: var(--orange-grad); border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; font-weight: 900; color: white; box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.5);">
+                        ${loggedInAdmin.nama.charAt(0).toUpperCase()}
+                    </div>
+                    <h2 style="font-size: 22px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px;">${loggedInAdmin.nama}</h2>
+                    <p style="font-size: 10px; font-weight: 800; color: #38bdf8; letter-spacing: 2px; margin-bottom: 30px;">${loggedInAdmin.role}</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px;">
+                        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1px;">EMAIL</span>
+                            <span style="font-size: 12px; font-weight: 800; color: white;">${loggedInAdmin.email}</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1px;">NO HP/WA</span>
+                            <span style="font-size: 12px; font-weight: 800; color: white;">${loggedInAdmin.phone || '-'}</span>
+                        </div>
+                    </div>
+
+                    <button onclick="registerFingerprint()" style="width: 100%; padding: 18px; border-radius: 18px; font-weight: 900; color: white; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase; font-size: 11px;">
+                        <i data-lucide="fingerprint"></i> Daftarkan Sidik Jari
+                    </button>
+                </div>`;
+            lucide.createIcons();
+        }
+
+        async function registerFingerprint() {
+            if(!window.PublicKeyCredential) { await showSysDialog({title:"TIDAK SUPPORT", msg:"Perangkat tidak mendukung atau URL bukan HTTPS.", type:"error", color:"var(--danger)"}); return; }
+            try {
+                const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+                const cred = await navigator.credentials.create({
+                    publicKey: {
+                        challenge: challenge,
+                        rp: { name: "Prasaka Master HQ" },
+                        user: { id: new Uint8Array(16), name: loggedInAdmin.email, displayName: loggedInAdmin.nama },
+                        pubKeyCredParams: [{alg: -7, type: "public-key"}, {alg: -257, type: "public-key"}],
+                        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                        timeout: 60000
+                    }
+                });
+                if(cred) {
+                    localStorage.setItem('admin_bio', localStorage.getItem('admin_auth'));
+                    await showSysDialog({title:"BERHASIL", msg:"Sidik jari/Biometrik didaftarkan!", type:"success", color:"var(--success)"});
+                }
+            } catch(e) { await showSysDialog({title:"GAGAL", msg:"Proses registrasi biometrik dibatalkan.", type:"error", color:"var(--danger)"}); }
+        }
+
+        async function loginFingerprint() {
+            const bio = JSON.parse(localStorage.getItem('admin_bio'));
+            if(!bio) { await showSysDialog({title:"BELUM ADA", msg:"Daftarkan biometrik dulu melalui menu Profil Admin.", type:"error", color:"var(--danger)"}); return; }
+            if(!window.PublicKeyCredential) { await showSysDialog({title:"TIDAK SUPPORT", msg:"Perangkat tidak mendukung.", type:"error", color:"var(--danger)"}); return; }
+            
+            try {
+                const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+                const cred = await navigator.credentials.get({ publicKey: { challenge: challenge, userVerification: "required" } });
+                if(cred) prosesLoginAdmin(bio.email, bio.pass);
+            } catch(e) { await showSysDialog({title:"GAGAL", msg:"Verifikasi biometrik dibatalkan.", type:"error", color:"var(--danger)"}); }
+        }
+
+        // ==========================================
+        // PROSES AUTH (LOGIN & REGISTER)
+        // ==========================================
+        function masukKeDashboard(info) {
+            loggedInAdmin = info; 
+            document.getElementById('admin-name-display').innerText = info.nama;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-admin-content').style.display = 'block';
+            renderAdminProfile(); 
+            fetchData();
+        }
+
+        async function prosesLoginAdmin(email = null, pass = null) {
+            const e = email || document.getElementById('l-email').value.trim();
+            const p = pass || document.getElementById('l-pass').value.trim();
+            if(!e || !p) { await showSysDialog({title:"PERHATIAN", msg:"Email dan Password tidak boleh kosong!", type:"error", color:"var(--danger)"}); return; }
+            
+            document.getElementById('loading-overlay').style.display = 'flex';
+            try {
+                // NORMAL GET FETCH (Syarat: Apps Script diclear "Execute as: Me", "Access: Anyone")
+                const res = await fetch(SCRIPT_URL + "?action=loginAdminMulti&email=" + encodeURIComponent(e) + "&pass=" + encodeURIComponent(p));
+                const data = await res.json();
+                
+                document.getElementById('loading-overlay').style.display = 'none';
+                if(data.status === "success") { 
+                    localStorage.setItem('admin_auth', JSON.stringify({ email: e, pass: p, info: data.admin })); 
+                    masukKeDashboard(data.admin); 
+                } else {
+                    await showSysDialog({title:"DITOLAK", msg:"Email atau Password salah!", type:"error", color:"var(--danger)"});
+                }
+            } catch(err) { 
+                document.getElementById('loading-overlay').style.display = 'none'; 
+                await showSysDialog({title:"KONEKSI GAGAL", msg:"Gagal terhubung ke Server. Pastikan Apps Script di-Deploy ke 'Anyone'.", type:"error", color:"var(--danger)"}); 
+            }
+        }
+
+        async function prosesRegisterAdmin() {
+            const n = document.getElementById('r-name').value.trim();
+            const e = document.getElementById('r-email').value.trim();
+            const r = document.getElementById('r-role').value;
+            const ph = document.getElementById('r-phone').value.trim();
+            const p = document.getElementById('r-pass').value.trim();
+            
+            if(!n || !e || !r || !ph || !p) { await showSysDialog({title:"PERHATIAN", msg:"Lengkapi form pendaftaran!", type:"error", color:"var(--danger)"}); return; }
+            
+            document.getElementById('loading-overlay').style.display = 'flex';
+            try {
+                // POST MENGGUNAKAN NO-CORS
+                await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({ type: "REGISTER_ADMIN", nama: n, email: e, role: r, phone: ph, password: p }) 
+                });
+                
+                document.getElementById('loading-overlay').style.display = 'none';
+                await showSysDialog({title:"BERHASIL", msg:"Pendaftaran Admin terkirim ke Database. Silakan Log In.", type:"success", color:"var(--success)"});
+                toggleAuth(); 
+            } catch(err) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                await showSysDialog({title:"ERROR", msg:"Gagal mengirim data.", type:"error", color:"var(--danger)"});
+            }
+        }
+
+        // ==========================================
+        // PULL DATA DASHBOARD & DATA MAPPING
+        // ==========================================
+        async function fetchData() {
+            try {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                const auth = JSON.parse(localStorage.getItem('admin_auth'));
+                
+                // NORMAL GET FETCH
+                const res = await fetch(SCRIPT_URL + "?auth=true&pass=" + encodeURIComponent(auth ? auth.pass : "")); 
+                const data = await res.json();
+                
+                document.getElementById('loading-overlay').style.display = 'none';
+                
+                if(!data || !data.config) throw new Error("Data kosong. Pastikan baris 2 di tab Settings Google Sheets terisi.");
+
+                currentConfig = data.config;
+                document.getElementById('s-ann').value = data.config.pengumuman || "";
+                document.getElementById('s-tol').value = data.config.toleransi || "0";
+                document.getElementById('s-com').value = data.config.namaPelatih || ""; 
+                document.getElementById('s-tim').value = formatJamBersih(data.config.waktuLatihan);
+                
+                const active = (data.siswa || []).filter(s => s.status === 'ACTIVE');
+                const pend = (data.siswa || []).filter(s => s.status === 'PENDING');
+                const hadir = [...new Set((data.logs || []).map(l => l.nama))].length;
+                
+                document.getElementById('st-siswa').innerText = active.length;
+                document.getElementById('st-hadir').innerText = hadir;
+                document.getElementById('st-pend').innerText = pend.length;
+                document.getElementById('st-pers').innerText = Math.round((hadir / (active.length || 1)) * 100) + "%";
+
+                document.getElementById('list-pending').innerHTML = pend.map(s => `
+                    <div class="data-row">
+                        <span style="font-weight:800; font-size:11px;">${s.nama}</span>
+                        <button onclick="acc(${s.rowId})" style="background:#10b981; color:white; padding:8px 12px; border-radius:10px; font-size:10px; font-weight:800; border:none; cursor:pointer;">ACC</button>
+                    </div>
+                `).join('') || '<p style="font-size:10px; opacity:0.3; text-align:center;">BERSIH</p>';
+                
+                document.getElementById('grid-all').innerHTML = (data.siswa || []).map(s => `
+                    <div class="data-row" style="align-items:flex-start;">
+                        <div>
+                            <p style="font-weight:800; font-size:13px; margin-bottom:6px;">${s.nama}</p>
+                            <div style="margin-bottom:6px;">
+                                <span class="tag" style="color:white; background:rgba(16, 185, 129, 0.2);">${s.status}</span>
+                                <span class="tag" style="color:#fb923c;">${s.role || 'ANGGOTA'}</span>
+                            </div>
+                            <p style="font-size:9px; color:#94a3b8; font-weight:700;">KELAS: ${s.kelas || '-'} | ANG: ${s.angkatan || '-'} | HP: ${s.phone || '-'}</p>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                            <span class="tag" style="background:transparent; border:1px solid rgba(255,255,255,0.2); color:white;">PIN: ${s.pin}</span>
+                            <button onclick="hapusData('SINGLE', 'Siswa', ${s.rowId})" style="color:#fb7185; background:none; border:none; cursor:pointer;"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('tb-log').innerHTML = (data.logs || []).reverse().map(l => {
+                    let sCol = l.status === 'TEPAT WAKTU' ? '#4ade80' : l.status === 'IZIN' ? '#38bdf8' : '#fb7185';
+                    return `
+                    <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 5px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <div>
+                                <p style="font-weight:800; font-size:12px; color:${sCol};">${l.nama} [${l.status}]</p>
+                                <p style="font-size:9px; opacity:0.5; font-weight:700;">${String(l.tanggal).substring(0,10)} | ${formatJamBersih(l.jam)}</p>
+                            </div>
+                            <button onclick="hapusData('SINGLE', 'Sheet1', ${l.rowId})" style="color:#fb7185; background:none; border:none; cursor:pointer;"><i data-lucide="x-circle" style="width:18px;"></i></button>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 10px; width: 100%;">
+                            <p style="font-size: 10px; font-weight: 700; color: #94a3b8;">KETERANGAN: <span style="color:white; font-weight:600;">${l.keterangan || 'Scan QR'}</span></p>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                lucide.createIcons();
+            } catch(e) { 
+                document.getElementById('loading-overlay').style.display = 'none';
+                showSysDialog({title:"DATA ERROR", msg: e.message, type:"error", color:"var(--danger)"});
+            }
+        }
+
+        // ==========================================
+        // ADMIN TOOLS (ACC, DELETE, SAVE)
+        // ==========================================
+        async function acc(r) { 
+            if(await showSysDialog({title:"KONFIRMASI", msg:"Setujui akun ini?", showCancel:true, confirmText:"ACC", color:"var(--success)"})) { 
+                // POST MENGGUNAKAN NO-CORS
+                await fetch(SCRIPT_URL + "?action=approve&row=" + r, { mode:'no-cors' }); 
+                setTimeout(() => fetchData(), 800); 
+            } 
+        }
+
+        async function hapusData(m, t, r = null) { 
+            if(await showSysDialog({title:"HAPUS DATA", msg:"Yakin menghapus permanen?", showCancel:true, confirmText:"HAPUS", color:"var(--danger)"})) { 
+                // POST MENGGUNAKAN NO-CORS
+                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ type: "DELETE_DATA", mode: m, targetSheet: t, rowId: r }) }); 
+                setTimeout(() => fetchData(), 800); 
+            } 
+        }
+        
+        async function resetJadwal() {
+            if(await showSysDialog({title:"KOSONGKAN JADWAL", msg:"Pasukan tidak bisa scan absen jika kosong.", showCancel:true, confirmText:"KOSONGKAN", color:"var(--danger)"})) { 
+                document.getElementById('s-tim').value = ""; 
+                await save(); 
+            }
+        }
+
+        async function save() { 
+            const btn = document.getElementById('btn-save-set');
+            btn.innerText = "MENYIMPAN...";
+            // POST MENGGUNAKAN NO-CORS
+            await fetch(SCRIPT_URL, { 
+                method:'POST', 
+                mode:'no-cors', 
+                body: JSON.stringify({
+                    type: "UPDATE_SETTINGS", 
+                    pengumuman: document.getElementById('s-ann').value, 
+                    namaPelatih: document.getElementById('s-com').value, 
+                    waktuLatihan: document.getElementById('s-tim').value, 
+                    toleransi: document.getElementById('s-tol').value, 
+                    logoUrl: "", 
+                    statusSistem: "ONLINE"
+                })
+            }); 
+            await showSysDialog({title:"SUKSES", msg:"Konfigurasi disimpan.", type:"success", color:"var(--success)"});
+            setTimeout(() => { fetchData(); btn.innerText = "UPDATE CONFIG"; }, 800);
+        }
+
+        // ==========================================
+        // INISIALISASI SAAT HALAMAN DIMUAT
+        // ==========================================
+        window.onload = async () => {
+            lucide.createIcons();
+            const savedAuth = JSON.parse(localStorage.getItem('admin_auth'));
+            if(savedAuth) {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                try {
+                    const res = await fetch(SCRIPT_URL + "?action=loginAdminMulti&email=" + encodeURIComponent(savedAuth.email) + "&pass=" + encodeURIComponent(savedAuth.pass));
+                    const data = await res.json();
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    
+                    if(data.status === "success") {
+                        masukKeDashboard(data.admin);
+                    } else {
+                        localStorage.removeItem('admin_auth');
+                    }
+                } catch(e) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }
+            }
+        };
+    </script>
+</body>
+</html>
