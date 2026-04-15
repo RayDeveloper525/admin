@@ -51,7 +51,7 @@
         
         #sys-dialog { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); }
         .glass-card-popup { background: rgba(30, 41, 59, 0.8); border: 1px solid var(--border); border-radius: 35px; padding: 40px; width: 90%; max-width: 340px; text-align: center; transform: scale(0.8); transition: 0.3s; }
-        #sys-dialog.active .glass-card-popup { transform: scale(1); opacity: 1; }
+        #sys-dialog.active .glass-card-popup { transform: scale(1); }
 
         .status-tag { font-size: 9px; font-weight: 900; padding: 6px 10px; border-radius: 8px; text-transform: uppercase; display: inline-block; }
         .status-active { background: rgba(74, 222, 128, 0.15); color: var(--success); border: 1px solid rgba(74, 222, 128, 0.3); }
@@ -130,7 +130,7 @@
 
         <header>
             <button class="btn-menu" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/Badge_Paskibraka.png" alt="PRASAKA Logo" style="height: 35px; object-fit: contain;">
+            <h1 style="font-size:18px; font-weight:800;">PRASAKA Master</h1>
         </header>
 
         <main>
@@ -158,7 +158,7 @@
                         <h3 id="st-telat" style="color:#ef4444;">0</h3>
                     </div>
                     <div class="card-stat" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
-                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL ANGGOTA</p>
+                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL PASUKAN</p>
                         <h3 id="st-siswa" style="color:#8b5cf6;">0</h3>
                     </div>
                 </div>
@@ -186,7 +186,6 @@
                     <div id="list-pending"></div>
                 </div>
             </div>
-            
             <div id="p-qr" class="page">
                 <div class="glass-box text-center">
                     <p style="font-size: 10px; font-weight: 800; color: var(--primary); margin-bottom: 25px; display: flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="scan" style="width:16px;"></i> GENERATOR QR LATIHAN</p>
@@ -313,72 +312,58 @@
             const e = document.getElementById('r-email').value.trim();
             const r = document.getElementById('r-role').value;
             const p = document.getElementById('r-pass').value.trim();
-
-            if(!n || !e || !r || !p) {
-                return showSysDialog({title: "PERHATIAN", msg: "Lengkapi seluruh form!", type: "error", color: "var(--danger)"});
-            }
-
+            if(!n || !e || !r || !p) { return showSysDialog({title: "PERHATIAN", msg: "Lengkapi seluruh form!", type: "error", color: "var(--danger)"}); }
             document.getElementById('loading-overlay').style.display = 'flex';
-            
             try {
                 const params = `action=registerAdmin&nama=${encodeURIComponent(n)}&email=${encodeURIComponent(e)}&role=${encodeURIComponent(r)}&pass=${encodeURIComponent(p)}`;
                 const res = await requestData(params);
-
                 document.getElementById('loading-overlay').style.display = 'none';
-                
                 if(res.status === "success") {
                     await showSysDialog({title: "BERHASIL", msg: "Akun Admin terdaftar! Silakan Login.", type: "success", color: "var(--success)"});
                     toggleAuth(); 
-                } else {
-                    throw new Error(res.msg);
-                }
+                } else { throw new Error(res.msg); }
             } catch (err) {
                 document.getElementById('loading-overlay').style.display = 'none';
-                showSysDialog({title: "GAGAL", msg: "Koneksi terputus atau data gagal masuk.", type: "error", color: "var(--danger)"});
+                showSysDialog({title: "GAGAL", msg: "Koneksi terputus.", type: "error", color: "var(--danger)"});
             }
         }
 
         function svLaporan() {
             let csv = "Tanggal,Jam,Nama,Status,Keterangan\n";
             if(!globalLogs || globalLogs.length === 0) return alert("Data log kosong!");
-            
             globalLogs.forEach(l => {
                 let tgl = l.tanggal ? String(l.tanggal).substring(0,10) : "";
                 let jam = l.jam;
-                if(String(jam).includes('T')) { 
-                    const d = new Date(jam); 
-                    jam = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); 
-                }
+                if(String(jam).includes('T')) { const d = new Date(jam); jam = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
                 csv += `"${tgl}","${jam}","${l.nama}","${l.status}","${l.keterangan || '-'}"\n`;
             });
-            
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; 
-            a.download = `Laporan_PRASAKA_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.csv`;
-            a.click(); 
-            window.URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = url; a.download = `Laporan_PRASAKA_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.csv`;
+            a.click(); window.URL.revokeObjectURL(url);
         }
 
-        function setLokasi() {
+       function setLokasi() {
             if (navigator.geolocation) {
                 document.getElementById('loading-overlay').style.display = 'flex';
+                // HAPUS { enableHighAccuracy: true } agar browser tidak memaksakan sinyal satelit jika lemah
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         document.getElementById('s-lat').value = pos.coords.latitude;
                         document.getElementById('s-lng').value = pos.coords.longitude;
                         document.getElementById('loading-overlay').style.display = 'none';
-                        showSysDialog({title:"GPS TERKUNCI", msg:"Lokasi markas berhasil didapatkan. Silakan klik SIMPAN PERUBAHAN CONFIG.", type:"success", color:"var(--success)"});
+                        showSysDialog({title:"GPS TERKUNCI", msg:"Silakan klik SIMPAN PERUBAHAN CONFIG.", type:"success", color:"var(--success)"});
                     },
                     (err) => {
                         document.getElementById('loading-overlay').style.display = 'none';
-                        showSysDialog({title:"GPS ERROR", msg:"Izin lokasi ditolak / tidak terbaca browser!", type:"error", color:"var(--danger)"});
-                    }, { enableHighAccuracy: true }
+                        let errMsg = "Izin lokasi ditolak!";
+                        if (err.code === 2) errMsg = "Sinyal GPS tidak tersedia. Pastikan Location di HP menyala.";
+                        if (err.code === 3) errMsg = "Waktu pencarian GPS habis. Coba refresh halaman.";
+                        showSysDialog({title:"GPS ERROR", msg:errMsg, type:"error", color:"var(--danger)"});
+                    },
+                    { timeout: 10000, maximumAge: 0 } // Tambahkan ini agar tidak mengambil cache lokasi lama
                 );
-            } else {
-                alert("Browser tidak mendukung GPS!");
-            }
+            } else { alert("Browser tidak mendukung GPS!"); }
         }
 
         function generateQR() {
@@ -388,34 +373,26 @@
 
             if (!time || time.trim() === "") {
                 qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=JADWAL_KOSONG";
-                qrImage.style.opacity = "0.2";
-                qrDisplay.innerText = "TIDAK ADA JADWAL LATIHAN";
-                qrDisplay.style.color = "var(--danger)";
-                qrDisplay.style.background = "rgba(251, 113, 133, 0.1)";
+                qrImage.style.opacity = "0.2"; qrDisplay.innerText = "TIDAK ADA JADWAL LATIHAN";
+                qrDisplay.style.color = "var(--danger)"; qrDisplay.style.background = "rgba(251, 113, 133, 0.1)";
             } else {
-                const d = new Date();
-                const today = d.getDate().toString().padStart(2,'0') + (d.getMonth()+1).toString().padStart(2,'0') + d.getFullYear(); 
-                
+                const d = new Date(); const today = d.getDate().toString().padStart(2,'0') + (d.getMonth()+1).toString().padStart(2,'0') + d.getFullYear(); 
                 const qrData = `PRASAKA22_ABSEN_${today}_${time}`;
                 qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
-                qrImage.style.opacity = "1";
-                qrDisplay.innerText = `BATAS ABSEN MASUK: ${time} WIB`;
-                qrDisplay.style.color = "var(--success)";
-                qrDisplay.style.background = "rgba(74, 222, 128, 0.1)";
+                qrImage.style.opacity = "1"; qrDisplay.innerText = `BATAS ABSEN MASUK: ${time} WIB`;
+                qrDisplay.style.color = "var(--success)"; qrDisplay.style.background = "rgba(74, 222, 128, 0.1)";
             }
         }
 
         async function prosesLoginAdmin() {
-            const e = document.getElementById('l-email').value.trim();
-            const p = document.getElementById('l-pass').value.trim();
+            const e = document.getElementById('l-email').value.trim(); const p = document.getElementById('l-pass').value.trim();
             if(!e || !p) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             try {
                 const data = await requestData(`action=loginAdminMulti&email=${encodeURIComponent(e)}&pass=${encodeURIComponent(p)}`);
                 document.getElementById('loading-overlay').style.display = 'none';
                 if(data.status === "success") {
-                    localStorage.setItem('admin_auth', JSON.stringify({email:e, pass:p, info:data.admin}));
-                    masukKeDashboard(data.admin);
+                    localStorage.setItem('admin_auth', JSON.stringify({email:e, pass:p, info:data.admin})); masukKeDashboard(data.admin);
                 } else await showSysDialog({title:"GAGAL", msg: data.msg, type:"error", color:"var(--danger)"});
             } catch(err) { document.getElementById('loading-overlay').style.display = 'none'; }
         }
@@ -430,10 +407,13 @@
             fetchData();
         }
 
+        // FUNGSI UPDATE DASHBOARD 
         function updateDashboardUI(data) {
-            const hariIni = new Date().toLocaleDateString('id-ID').substring(0,10); 
+            // 1. Data Kedisiplinan
+            const hariIni = new Date().toLocaleDateString('id-ID').substring(0,10); // Format DD/MM/YYYY lokal
             const logHariIni = data.logs.filter(l => l.tanggal && String(l.tanggal).includes(hariIni));
             
+            // Hindari duplikat nama, ambil status terbaru per anak
             const uniqueLogs = {};
             logHariIni.forEach(l => { if(!uniqueLogs[l.nama]) uniqueLogs[l.nama] = l.status; });
             
@@ -451,10 +431,12 @@
             document.getElementById('st-telat').innerText = countTelat;
             document.getElementById('st-siswa').innerText = totalAktif;
 
+            // 2. Progress Bar
             let persentase = totalAktif > 0 ? Math.round((countHadir / totalAktif) * 100) : 0;
             document.getElementById('st-persen').innerText = `${persentase}%`;
             document.getElementById('bar-hadir').style.width = `${persentase}%`;
 
+            // 3. Status Banner
             const opInd = document.getElementById('op-indicator');
             const opText = document.getElementById('op-text');
             const jamLatihan = data.config.time || "";
@@ -471,8 +453,9 @@
                 opText.style.color = "#6ee7b7";
             }
 
+            // 4. Live Radar (3 Log Terakhir)
             const radarBox = document.getElementById('live-radar-list');
-            const radarData = data.logs.reverse().slice(0, 3); 
+            const radarData = data.logs.reverse().slice(0, 3); // Ambil 3 teratas
             
             radarBox.innerHTML = radarData.map(l => {
                 let j = l.jam;
@@ -499,22 +482,16 @@
                 document.getElementById('s-lng').value = data.config.lng || "";
                 
                 let jamRapi = data.config.time || "";
-                if (jamRapi.includes('T')) {
-                    const d = new Date(jamRapi);
-                    jamRapi = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0');
-                }
+                if (jamRapi.includes('T')) { const d = new Date(jamRapi); jamRapi = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
                 document.getElementById('s-tim').value = jamRapi;
                 
                 generateQR();
-                updateDashboardUI(data);
+                updateDashboardUI(data); // Panggil fungsi dashboard baru
 
                 document.getElementById('grid-all').innerHTML = data.siswa.map(s=>`
                     <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 4px;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div>
-                                <b style="font-size: 13px;">${s.nama}</b>
-                                <br><small style="color: var(--primary); font-weight: 800;">${s.role} | ANGKATAN ${s.angkatan || '-'}</small>
-                            </div>
+                            <div><b style="font-size: 13px;">${s.nama}</b><br><small style="color: var(--primary); font-weight: 800;">${s.role} | ANGKATAN ${s.angkatan || '-'}</small></div>
                             <button onclick="hapusData('Siswa',${s.rowId})" style="color:var(--danger); background:none; border:none; cursor:pointer; padding:5px;"><i data-lucide="trash-2" style="width:16px;"></i></button>
                         </div>
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.05);">
@@ -524,39 +501,20 @@
                     </div>
                 `).join('');
 
-                document.getElementById('tb-log').innerHTML = data.logs.reverse().map(l => {
+                document.getElementById('tb-log').innerHTML = data.logs.map(l => {
                     let j = l.jam || '--:--';
-                    if(String(j).includes('T')) { 
-                        const d = new Date(j); 
-                        j = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); 
-                    }
-                    
+                    if(String(j).includes('T')) { const d = new Date(j); j = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
                     let tglRapi = l.tanggal ? String(l.tanggal).substring(0,10) : '-';
-                    
-                    let statusClass = "status-pending"; 
-                    let statusStyle = "";
-                    if(l.status === 'TEPAT WAKTU' || l.status === 'HADIR') {
-                        statusClass = "status-active"; 
-                    } else if (l.status === 'IZIN') {
-                        statusClass = ""; 
-                        statusStyle = "background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3);"; 
-                    }
-
+                    let statusClass = "status-pending"; let statusStyle = "";
+                    if(l.status === 'TEPAT WAKTU' || l.status === 'HADIR') { statusClass = "status-active"; } 
+                    else if (l.status === 'IZIN') { statusClass = ""; statusStyle = "background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3);"; }
                     let ketText = l.keterangan ? l.keterangan : (l.status === 'IZIN' ? 'Tanpa Alasan' : 'Scan QR');
-
                     return `
                     <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <b style="font-size: 13px; text-transform: uppercase;">${l.nama}</b>
-                            <span class="status-tag ${statusClass}" style="${statusStyle}">${l.status}</span>
-                        </div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;"><b style="font-size: 13px; text-transform: uppercase;">${l.nama}</b><span class="status-tag ${statusClass}" style="${statusStyle}">${l.status}</span></div>
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
-                            <small style="color: #94a3b8; font-weight: 700; font-size: 10px; display:flex; align-items:center; gap:4px;">
-                                <i data-lucide="clock" style="width:12px; height:12px;"></i> ${tglRapi} | ${j}
-                            </small>
-                            <small style="color: #cbd5e1; font-weight: 600; font-size: 10px; max-width: 50%; text-align: right; font-style: italic;">
-                                (${ketText})
-                            </small>
+                            <small style="color: #94a3b8; font-weight: 700; font-size: 10px; display:flex; align-items:center; gap:4px;"><i data-lucide="clock" style="width:12px; height:12px;"></i> ${tglRapi} | ${j}</small>
+                            <small style="color: #cbd5e1; font-weight: 600; font-size: 10px; max-width: 50%; text-align: right; font-style: italic;">(${ketText})</small>
                         </div>
                     </div>`;
                 }).join('') || '<p style="text-align:center; opacity:0.3; font-size:10px; padding: 20px;">BELUM ADA DATA ABSEN</p>';
@@ -578,36 +536,28 @@
             const ok = await showSysDialog({title: "KONFIRMASI", msg: "Hapus data ini secara permanen?", showCancel: true, color: "var(--danger)"});
             if(!ok) return;
             document.getElementById('loading-overlay').style.display = 'flex';
-            try {
-                const res = await requestData(`action=deleteData&targetSheet=${sheet}&rowId=${id}`);
-                if(res.status === 'success') { fetchData(); }
-            } catch(e) {}
+            try { const res = await requestData(`action=deleteData&targetSheet=${sheet}&rowId=${id}`); if(res.status === 'success') { fetchData(); } } catch(e) {}
             document.getElementById('loading-overlay').style.display = 'none';
         }
 
-        async function save() { 
+       async function save() { 
             document.getElementById('loading-overlay').style.display = 'flex';
-            const body = `action=updateSettings&ann=${encodeURIComponent(document.getElementById('s-ann').value)}&time=${encodeURIComponent(document.getElementById('s-tim').value)}&lat=${encodeURIComponent(document.getElementById('s-lat').value)}&lng=${encodeURIComponent(document.getElementById('s-lng').value)}&tol=15`;
+            // PERUBAHAN: Ubah &tol=15 menjadi &tol=100 (Toleransi jarak 100 meter)
+            const body = `action=updateSettings&ann=${encodeURIComponent(document.getElementById('s-ann').value)}&time=${encodeURIComponent(document.getElementById('s-tim').value)}&lat=${encodeURIComponent(document.getElementById('s-lat').value)}&lng=${encodeURIComponent(document.getElementById('s-lng').value)}&tol=100`;
             await requestData(body);
             document.getElementById('loading-overlay').style.display = 'none';
-            await showSysDialog({title:"BERHASIL", msg:"Config, Jadwal & GPS diupdate!", type:"success", color:"var(--success)"});
+            await showSysDialog({title:"BERHASIL", msg:"Config, Jadwal & GPS diupdate (Radius 100m)!", type:"success", color:"var(--success)"});
             fetchData();
         }
 
         async function resetJam() { 
             const ok = await showSysDialog({title: "RESET JADWAL", msg: "Kosongkan jam latihan hari ini?", showCancel: true, color: "var(--danger)"});
             if(!ok) return;
-            
             document.getElementById('loading-overlay').style.display = 'flex';
-            const ann = document.getElementById('s-ann').value;
-            const lat = document.getElementById('s-lat').value;
-            const lng = document.getElementById('s-lng').value;
-            
+            const ann = document.getElementById('s-ann').value; const lat = document.getElementById('s-lat').value; const lng = document.getElementById('s-lng').value;
             await requestData(`action=updateSettings&ann=${encodeURIComponent(ann)}&time=&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&tol=15`);
             document.getElementById('loading-overlay').style.display = 'none';
-            
-            document.getElementById('s-tim').value = "";
-            generateQR(); 
+            document.getElementById('s-tim').value = ""; generateQR(); 
             await showSysDialog({title:"RESET SUKSES", msg:"Jadwal telah ditutup.", type:"success", color:"var(--success)"});
             fetchData();
         }
