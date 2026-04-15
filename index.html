@@ -41,15 +41,17 @@
         .page { display: none; } .page.active { display: block; animation: slideUp 0.4s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
-        .card-stat { padding: 30px 15px; border-radius: 30px; text-align: center; color: white; }
-        .card-stat h3 { font-size: 38px; font-weight: 800; }
+        /* QUAD-CORE STATS GRID */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .card-stat { padding: 20px 15px; border-radius: 25px; text-align: center; color: white; display:flex; flex-direction:column; justify-content:center; align-items:center; border: 1px solid rgba(255,255,255,0.1); }
+        .card-stat h3 { font-size: 32px; font-weight: 900; line-height: 1; margin-top: 8px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
         .glass-box { background: var(--glass); border: 1px solid var(--border); border-radius: 30px; padding: 25px; margin-bottom: 15px; }
         .data-row { display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 15px; background: rgba(255,255,255,0.03); margin-bottom: 10px; }
         
         #sys-dialog { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); }
         .glass-card-popup { background: rgba(30, 41, 59, 0.8); border: 1px solid var(--border); border-radius: 35px; padding: 40px; width: 90%; max-width: 340px; text-align: center; transform: scale(0.8); transition: 0.3s; }
-        #sys-dialog.active .glass-card-popup { transform: scale(1); }
+        #sys-dialog.active .glass-card-popup { transform: scale(1); opacity: 1; }
 
         .status-tag { font-size: 9px; font-weight: 900; padding: 6px 10px; border-radius: 8px; text-transform: uppercase; display: inline-block; }
         .status-active { background: rgba(74, 222, 128, 0.15); color: var(--success); border: 1px solid rgba(74, 222, 128, 0.3); }
@@ -57,6 +59,16 @@
 
         .avatar-circle { width: 90px; height: 90px; background: var(--orange-grad); border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; font-weight: 900; color: white; }
         .hidden { display: none !important; }
+
+        /* ANIMASI INDIKATOR */
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+        .indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulse 1.5s infinite; }
+        .ind-on { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .ind-off { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        
+        /* PROGRESS BAR */
+        .progress-bg { background: rgba(0,0,0,0.5); border-radius: 10px; height: 8px; width: 100%; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .progress-fill { background: var(--green-grad); height: 100%; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -118,21 +130,63 @@
 
         <header>
             <button class="btn-menu" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
-            <h1 style="font-size:18px; font-weight:800;">PRASAKA Master</h1>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/Badge_Paskibraka.png" alt="PRASAKA Logo" style="height: 35px; object-fit: contain;">
         </header>
 
         <main>
             <div id="p-dash" class="page active">
-                <div class="stat-grid">
-                    <div class="card-stat" style="background: var(--blue-grad);"><p style="font-size:10px; opacity:0.7;">ANGGOTA AKTIF</p><h3 id="st-siswa">0</h3></div>
-                    <div class="card-stat" style="background: var(--green-grad);"><p style="font-size:10px; opacity:0.7;">TOTAL HADIR</p><h3 id="st-hadir">0</h3></div>
+                
+                <div id="status-banner" style="background: rgba(30, 41, 59, 0.5); border: 1px solid var(--border); border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <span id="op-indicator" class="indicator ind-off"></span>
+                        <span id="op-text" style="font-size: 11px; font-weight: 800; letter-spacing: 1px;">SISTEM MEMUAT...</span>
+                    </div>
+                    <i data-lucide="shield-check" style="width: 18px; opacity: 0.5;"></i>
                 </div>
+
+                <div class="stat-grid">
+                    <div class="card-stat" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                        <p style="font-size:9px; font-weight:800; color: #34d399; letter-spacing:1px;">HADIR</p>
+                        <h3 id="st-hadir" style="color:#10b981;">0</h3>
+                    </div>
+                    <div class="card-stat" style="background: rgba(14, 165, 233, 0.1); border-color: rgba(14, 165, 233, 0.3);">
+                        <p style="font-size:9px; font-weight:800; color: #7dd3fc; letter-spacing:1px;">IZIN</p>
+                        <h3 id="st-izin" style="color:#0ea5e9;">0</h3>
+                    </div>
+                    <div class="card-stat" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                        <p style="font-size:9px; font-weight:800; color: #fca5a5; letter-spacing:1px;">TERLAMBAT</p>
+                        <h3 id="st-telat" style="color:#ef4444;">0</h3>
+                    </div>
+                    <div class="card-stat" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
+                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL ANGGOTA</p>
+                        <h3 id="st-siswa" style="color:#8b5cf6;">0</h3>
+                    </div>
+                </div>
+
+                <div class="glass-box" style="padding: 20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size: 10px; font-weight: 800; color: #94a3b8;">RASIO KEHADIRAN</span>
+                        <span id="st-persen" style="font-size: 10px; font-weight: 900; color: var(--success);">0%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div id="bar-hadir" class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="glass-box">
+                    <p style="font-size: 10px; font-weight: 800; color: var(--primary); margin-bottom: 15px; display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="radio" style="width:14px; animation: pulse 2s infinite;"></i> RADAR ABSENSI (LIVE)
+                    </p>
+                    <div id="live-radar-list">
+                        </div>
+                </div>
+
                 <div class="glass-box">
                     <p style="font-size: 10px; font-weight: 800; color: #fb7185; margin-bottom: 15px;">MENUNGGU ACC</p>
                     <div id="list-pending"></div>
                 </div>
             </div>
-
+            
             <div id="p-qr" class="page">
                 <div class="glass-box text-center">
                     <p style="font-size: 10px; font-weight: 800; color: var(--primary); margin-bottom: 25px; display: flex; align-items:center; justify-content:center; gap:8px;"><i data-lucide="scan" style="width:16px;"></i> GENERATOR QR LATIHAN</p>
@@ -149,9 +203,17 @@
                 <div class="glass-box text-center">
                     <div class="avatar-circle" id="prof-initial">A</div>
                     <h2 id="prof-nama" style="font-weight:900; text-transform:uppercase; margin-bottom:5px;">-</h2>
-                    <p id="prof-role" style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:2px; margin-bottom:20px;">-</p>
-                    <div class="data-row" style="background:rgba(255,255,255,0.05);"><span>EMAIL HQ</span><span id="prof-email">-</span></div>
-                    <button onclick="logoutAdmin()" class="auth-btn" style="background:var(--red-grad); margin-top:20px;">KELUAR SESI</button>
+                    <p id="prof-role" style="font-size:10px; font-weight:800; color:var(--primary); letter-spacing:2px; margin-bottom:25px;">-</p>
+                    
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 20px 15px; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.1); padding: 6px 14px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.2);">
+                            <i data-lucide="mail" style="width: 12px; height: 12px; color: var(--primary);"></i>
+                            <span style="font-size: 9px; font-weight: 900; color: var(--primary); letter-spacing: 2px;">SECURE COMMS</span>
+                        </div>
+                        <span id="prof-email" style="font-size: 13px; font-weight: 800; color: #e2e8f0; word-break: break-all; text-align: center; line-height: 1.4;">-</span>
+                    </div>
+
+                    <button onclick="logoutAdmin()" class="auth-btn" style="background:var(--red-grad); margin-top:10px;">KELUAR SESI</button>
                 </div>
             </div>
 
@@ -199,9 +261,8 @@
         // MASUKAN SCRIPT URL WEB APP LU DISINI PELATIH!
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxieMyuN0q4QbCHIQAYj4gMKj1U-AlF2NM1Elbvs11MITj5Wrgdafblkd-YkqDFFeUJ/exec"; 
 
-        let globalLogs = []; // Array untuk fitur SV Laporan
+        let globalLogs = [];
 
-        // JSONP ENGINE
         function requestData(params) {
             return new Promise((resolve, reject) => {
                 const cb = 'prasaka_cb_' + Math.floor(Math.random() * 1000000);
@@ -247,7 +308,36 @@
         function toggleAuth() { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('reg-form').classList.toggle('hidden'); }
         function logoutAdmin() { localStorage.removeItem('admin_auth'); location.reload(); }
 
-        // EXPORT CSV (SV LAPORAN)
+        async function prosesRegisterAdmin() {
+            const n = document.getElementById('r-name').value.trim();
+            const e = document.getElementById('r-email').value.trim();
+            const r = document.getElementById('r-role').value;
+            const p = document.getElementById('r-pass').value.trim();
+
+            if(!n || !e || !r || !p) {
+                return showSysDialog({title: "PERHATIAN", msg: "Lengkapi seluruh form!", type: "error", color: "var(--danger)"});
+            }
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            try {
+                const params = `action=registerAdmin&nama=${encodeURIComponent(n)}&email=${encodeURIComponent(e)}&role=${encodeURIComponent(r)}&pass=${encodeURIComponent(p)}`;
+                const res = await requestData(params);
+
+                document.getElementById('loading-overlay').style.display = 'none';
+                
+                if(res.status === "success") {
+                    await showSysDialog({title: "BERHASIL", msg: "Akun Admin terdaftar! Silakan Login.", type: "success", color: "var(--success)"});
+                    toggleAuth(); 
+                } else {
+                    throw new Error(res.msg);
+                }
+            } catch (err) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                showSysDialog({title: "GAGAL", msg: "Koneksi terputus atau data gagal masuk.", type: "error", color: "var(--danger)"});
+            }
+        }
+
         function svLaporan() {
             let csv = "Tanggal,Jam,Nama,Status,Keterangan\n";
             if(!globalLogs || globalLogs.length === 0) return alert("Data log kosong!");
@@ -271,7 +361,6 @@
             window.URL.revokeObjectURL(url);
         }
 
-        // KUNCI KOORDINAT GPS MARKAS
         function setLokasi() {
             if (navigator.geolocation) {
                 document.getElementById('loading-overlay').style.display = 'flex';
@@ -292,7 +381,6 @@
             }
         }
 
-        // GENERATE QR DINAMIS ANTI SCREENSHOT
         function generateQR() {
             const time = document.getElementById('s-tim').value;
             const qrImage = document.getElementById('qr-image');
@@ -306,7 +394,7 @@
                 qrDisplay.style.background = "rgba(251, 113, 133, 0.1)";
             } else {
                 const d = new Date();
-                const today = d.getDate().toString().padStart(2,'0') + (d.getMonth()+1).toString().padStart(2,'0') + d.getFullYear(); // DDMMYYYY
+                const today = d.getDate().toString().padStart(2,'0') + (d.getMonth()+1).toString().padStart(2,'0') + d.getFullYear(); 
                 
                 const qrData = `PRASAKA22_ABSEN_${today}_${time}`;
                 qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
@@ -342,10 +430,69 @@
             fetchData();
         }
 
+        function updateDashboardUI(data) {
+            const hariIni = new Date().toLocaleDateString('id-ID').substring(0,10); 
+            const logHariIni = data.logs.filter(l => l.tanggal && String(l.tanggal).includes(hariIni));
+            
+            const uniqueLogs = {};
+            logHariIni.forEach(l => { if(!uniqueLogs[l.nama]) uniqueLogs[l.nama] = l.status; });
+            
+            let countHadir = 0, countIzin = 0, countTelat = 0;
+            Object.values(uniqueLogs).forEach(s => {
+                if(s === "TEPAT WAKTU" || s === "HADIR") countHadir++;
+                else if(s === "IZIN") countIzin++;
+                else if(s === "TERLAMBAT") countTelat++;
+            });
+
+            const totalAktif = data.siswa.filter(s => s.status === 'ACTIVE').length;
+            
+            document.getElementById('st-hadir').innerText = countHadir;
+            document.getElementById('st-izin').innerText = countIzin;
+            document.getElementById('st-telat').innerText = countTelat;
+            document.getElementById('st-siswa').innerText = totalAktif;
+
+            let persentase = totalAktif > 0 ? Math.round((countHadir / totalAktif) * 100) : 0;
+            document.getElementById('st-persen').innerText = `${persentase}%`;
+            document.getElementById('bar-hadir').style.width = `${persentase}%`;
+
+            const opInd = document.getElementById('op-indicator');
+            const opText = document.getElementById('op-text');
+            const jamLatihan = data.config.time || "";
+
+            if (!jamLatihan || jamLatihan.trim() === "") {
+                opInd.className = "indicator ind-off";
+                opText.innerText = "MARKAS DITUTUP - TIDAK ADA JADWAL";
+                opText.style.color = "#fca5a5";
+            } else {
+                opInd.className = "indicator ind-on";
+                let jamRapi = jamLatihan;
+                if (jamRapi.includes('T')) { const d = new Date(jamRapi); jamRapi = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
+                opText.innerText = `LATIHAN AKTIF - BATAS: ${jamRapi} WIB`;
+                opText.style.color = "#6ee7b7";
+            }
+
+            const radarBox = document.getElementById('live-radar-list');
+            const radarData = data.logs.reverse().slice(0, 3); 
+            
+            radarBox.innerHTML = radarData.map(l => {
+                let j = l.jam;
+                if(String(j).includes('T')) { const d = new Date(j); j = d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0'); }
+                let col = (l.status === 'TEPAT WAKTU' || l.status === 'HADIR') ? '#34d399' : (l.status === 'IZIN' ? '#38bdf8' : '#fb7185');
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding: 12px; background:rgba(0,0,0,0.2); border-radius:12px; margin-bottom:8px; border-left: 3px solid ${col};">
+                    <div>
+                        <p style="font-size:11px; font-weight:800; color:white; text-transform:uppercase;">${l.nama}</p>
+                        <p style="font-size:9px; color:#94a3b8;">${j} | ${l.keterangan || 'Lapor'}</p>
+                    </div>
+                    <span style="font-size:8px; font-weight:900; color:${col}; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px;">${l.status}</span>
+                </div>`;
+            }).join('') || '<p style="text-align:center; font-size:10px; color:#64748b;">Radar Sepi...</p>';
+        }
+
         async function fetchData() {
             const data = await requestData(`auth=true`);
             if(data.status === "success") {
-                globalLogs = data.logs; // Simpan untuk SV Export
+                globalLogs = data.logs; 
                 
                 document.getElementById('s-ann').value = data.config.ann || "";
                 document.getElementById('s-lat').value = data.config.lat || "";
@@ -359,10 +506,8 @@
                 document.getElementById('s-tim').value = jamRapi;
                 
                 generateQR();
+                updateDashboardUI(data);
 
-                document.getElementById('st-siswa').innerText = data.siswa.filter(s=>s.status==='ACTIVE').length;
-                document.getElementById('st-hadir').innerText = [...new Set(data.logs.map(l=>l.nama))].length;
-                
                 document.getElementById('grid-all').innerHTML = data.siswa.map(s=>`
                     <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 4px;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
@@ -379,11 +524,42 @@
                     </div>
                 `).join('');
 
-                document.getElementById('tb-log').innerHTML = data.logs.reverse().map(l=>{
-                    let j = l.jam;
-                    if(String(j).includes('T')) { const d = new Date(j); j = d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0'); }
-                    return `<div class="data-row"><b>${l.nama}</b><small>${j}</small></div>`;
-                }).join('');
+                document.getElementById('tb-log').innerHTML = data.logs.reverse().map(l => {
+                    let j = l.jam || '--:--';
+                    if(String(j).includes('T')) { 
+                        const d = new Date(j); 
+                        j = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); 
+                    }
+                    
+                    let tglRapi = l.tanggal ? String(l.tanggal).substring(0,10) : '-';
+                    
+                    let statusClass = "status-pending"; 
+                    let statusStyle = "";
+                    if(l.status === 'TEPAT WAKTU' || l.status === 'HADIR') {
+                        statusClass = "status-active"; 
+                    } else if (l.status === 'IZIN') {
+                        statusClass = ""; 
+                        statusStyle = "background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3);"; 
+                    }
+
+                    let ketText = l.keterangan ? l.keterangan : (l.status === 'IZIN' ? 'Tanpa Alasan' : 'Scan QR');
+
+                    return `
+                    <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <b style="font-size: 13px; text-transform: uppercase;">${l.nama}</b>
+                            <span class="status-tag ${statusClass}" style="${statusStyle}">${l.status}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                            <small style="color: #94a3b8; font-weight: 700; font-size: 10px; display:flex; align-items:center; gap:4px;">
+                                <i data-lucide="clock" style="width:12px; height:12px;"></i> ${tglRapi} | ${j}
+                            </small>
+                            <small style="color: #cbd5e1; font-weight: 600; font-size: 10px; max-width: 50%; text-align: right; font-style: italic;">
+                                (${ketText})
+                            </small>
+                        </div>
+                    </div>`;
+                }).join('') || '<p style="text-align:center; opacity:0.3; font-size:10px; padding: 20px;">BELUM ADA DATA ABSEN</p>';
                 
                 document.getElementById('list-pending').innerHTML = data.siswa.filter(s=>s.status==='PENDING').map(s=>`<div class="data-row"><span>${s.nama}</span><button onclick="acc(${s.rowId})" style="background:var(--success); color:#0f172a; padding:8px 12px; border:none; border-radius:10px; font-weight:800; font-size:10px; cursor:pointer;">ACC</button></div>`).join('') || '<p style="text-align:center; opacity:0.3; font-size:10px;">BERSIH</p>';
                 lucide.createIcons();
@@ -392,7 +568,7 @@
 
         async function acc(r) { 
             document.getElementById('loading-overlay').style.display = 'flex';
-            await requestData(`action=approve&row=${r}`); 
+            await requestData(`action=approve&rowId=${r}`); 
             document.getElementById('loading-overlay').style.display = 'none';
             await showSysDialog({title:"SUKSES", msg:"Anggota disetujui!", type:"success", color:"var(--success)"}); 
             fetchData(); 
