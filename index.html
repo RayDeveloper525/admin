@@ -540,15 +540,31 @@
             document.getElementById('loading-overlay').style.display = 'none';
         }
 
-       async function save() { 
+               async function save() { 
+            const lat = document.getElementById('s-lat').value;
+            const lng = document.getElementById('s-lng').value;
+
+            // VALIDASI: Jangan kasih simpan kalau GPS belum kekunci
+            if(!lat || !lng || lat === "" || lng === "") {
+                return showSysDialog({title:"GAGAL", msg:"Lu belum kunci lokasi latihan! Klik tombol 'KUNCI KOORDINAT' dulu.", type:"error", color:"var(--danger)"});
+            }
+
             document.getElementById('loading-overlay').style.display = 'flex';
-            // PERUBAHAN: Ubah &tol=15 menjadi &tol=100 (Toleransi jarak 100 meter)
-            const body = `action=updateSettings&ann=${encodeURIComponent(document.getElementById('s-ann').value)}&time=${encodeURIComponent(document.getElementById('s-tim').value)}&lat=${encodeURIComponent(document.getElementById('s-lat').value)}&lng=${encodeURIComponent(document.getElementById('s-lng').value)}&tol=100`;
-            await requestData(body);
-            document.getElementById('loading-overlay').style.display = 'none';
-            await showSysDialog({title:"BERHASIL", msg:"Config, Jadwal & GPS diupdate (Radius 100m)!", type:"success", color:"var(--success)"});
-            fetchData();
+            
+            // Kita pake tol=100 biar lega
+            const body = `action=updateSettings&ann=${encodeURIComponent(document.getElementById('s-ann').value)}&time=${encodeURIComponent(document.getElementById('s-tim').value)}&lat=${lat}&lng=${lng}&tol=100`;
+            
+            try {
+                await requestData(body);
+                document.getElementById('loading-overlay').style.display = 'none';
+                await showSysDialog({title:"BERHASIL", msg:"Lokasi Latihan & Jadwal Terupdate!", type:"success", color:"var(--success)"});
+                fetchData();
+            } catch(e) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                showSysDialog({title:"EROR", msg:"Gagal koneksi ke pusat.", type:"error", color:"var(--danger)"});
+            }
         }
+
 
         async function resetJam() { 
             const ok = await showSysDialog({title: "RESET JADWAL", msg: "Kosongkan jam latihan hari ini?", showCancel: true, color: "var(--danger)"});
