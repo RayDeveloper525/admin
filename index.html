@@ -99,13 +99,13 @@
             <i data-lucide="crosshair" style="width:12px;"></i> Sistem Absensi Radar GPS
         </div>
         <h1 class="ws-title">Sistem Absensi Digital<br><span>Paskibra SMPN 22 Depok</span></h1>
-        <h2 class="ws-subtitle">untuk Pasukan PRASAKA</h2>
+        <h2 class="ws-subtitle">untuk Anggota PRASAKA</h2>
         <p class="ws-desc">Meningkatkan kedisiplinan dan akurasi kehadiran anggota dengan teknologi radar modern dan verifikasi titik kumpul *real-time*.</p>
         <div style="text-align: center; margin-bottom: 30px; opacity: 0.5;">
             <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); width: 80%; margin: 0 auto;"></div>
         </div>
         <div class="ws-btn-group">
-            <button onclick="masukKeLogin()" class="ws-btn-primary">Ke Dashboard <i data-lucide="arrow-right" style="width:14px;"></i></button>
+            <button onclick="masukKeLogin()" class="ws-btn-primary">Login/Daftar<i data-lucide="arrow-right" style="width:14px;"></i></button>
             <button class="ws-btn-secondary">Lihat Panduan</button>
         </div>
         <div class="ws-stats-container">
@@ -167,7 +167,7 @@
         <div id="sidebar">
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:25px;">
                 <div class="avatar-circle" style="width:45px; height:45px; border-radius:15px; font-size:18px; margin:0;">A</div>
-                <div><h2 style="font-size:10px; color:var(--primary); font-weight:800;">COMMAND</h2><h1 id="admin-name-display" style="font-size:13px; font-weight:800;">ADMIN</h1></div>
+                <div><h2 style="font-size:10px; color:var(--primary); font-weight:800;">DASHBOARD MENU</h2><h1 id="admin-name-display" style="font-size:13px; font-weight:800;">ADMIN</h1></div>
             </div>
             <div class="sb-nav">
                 <button onclick="sw('p-dash')" class="sb-link btn-dash"><i data-lucide="layout-grid"></i> Dashboard</button>
@@ -210,7 +210,7 @@
                         <h3 id="st-telat" style="color:#ef4444;">0</h3>
                     </div>
                     <div class="card-stat" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
-                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL PASUKAN</p>
+                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL ANGGOTA</p>
                         <h3 id="st-siswa" style="color:#8b5cf6;">0</h3>
                     </div>
                 </div>
@@ -244,7 +244,7 @@
                     <div style="background: white; padding: 25px; border-radius: 30px; display: inline-block; margin-bottom: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
                         <img id="qr-image" src="" alt="Menunggu Jadwal..." style="width: 220px; height: 220px; object-fit: contain;">
                     </div>
-                    <h3 style="font-size: 20px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase;">Arahkan Kamera Ke Sini</h3>
+                    <h3 style="font-size: 20px; font-weight: 900; margin-bottom: 5px; text-transform: uppercase;">Arahkan Kamera Ke QR</h3>
                     <p id="qr-time-display" style="font-size: 12px; font-weight: 800; color: var(--success); margin-bottom: 25px; background: rgba(74, 222, 128, 0.1); padding: 10px; border-radius: 12px; display: inline-block;"></p>
                     <button onclick="generateQR()" class="auth-btn" style="background: var(--cyan-grad);"><i data-lucide="refresh-cw" style="width:18px; display:inline-block; vertical-align:middle; margin-right:8px;"></i> PERBARUI QR</button>
                 </div>
