@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRASAKA MASTER | ADMIN DASHBOARD</title>
+    <title>PRASAKA MASTER | ADMIN HQ</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg: #020617; --glass: rgba(255, 255, 255, 0.03); --border: rgba(255, 255, 255, 0.1); --text: #f8fafc;
@@ -41,7 +42,6 @@
         .page { display: none; } .page.active { display: block; animation: slideUp 0.4s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* QUAD-CORE STATS GRID */
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .card-stat { padding: 20px 15px; border-radius: 25px; text-align: center; color: white; display:flex; flex-direction:column; justify-content:center; align-items:center; border: 1px solid rgba(255,255,255,0.1); }
         .card-stat h3 { font-size: 32px; font-weight: 900; line-height: 1; margin-top: 8px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -60,18 +60,71 @@
         .avatar-circle { width: 90px; height: 90px; background: var(--orange-grad); border-radius: 25px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; font-weight: 900; color: white; }
         .hidden { display: none !important; }
 
-        /* ANIMASI INDIKATOR */
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
         .indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulse 1.5s infinite; }
         .ind-on { background: var(--success); box-shadow: 0 0 10px var(--success); }
         .ind-off { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-        
-        /* PROGRESS BAR */
+                /* PROGRESS BAR */
         .progress-bg { background: rgba(0,0,0,0.5); border-radius: 10px; height: 8px; width: 100%; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .progress-fill { background: var(--green-grad); height: 100%; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 10px; }
+
+        /* WELCOME SCREEN STYLES */
+        #welcome-screen { position: fixed; inset: 0; background: radial-gradient(circle at top right, #0f172a, #020617); z-index: 3000; display: flex; flex-direction: column; padding: 30px 25px; overflow-y: auto; transition: opacity 0.5s ease; }
+        .ws-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; }
+        .ws-brand { font-size: 12px; font-weight: 900; color: white; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
+        .ws-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); color: var(--primary); padding: 8px 16px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; }
+        .ws-title { font-size: 42px; font-weight: 900; line-height: 1.1; margin-bottom: 10px; color: white; letter-spacing: -1px; }
+        .ws-title span { background: var(--cyan-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .ws-subtitle { font-size: 22px; font-weight: 800; color: #94a3b8; margin-bottom: 25px; }
+        .ws-desc { font-size: 12px; color: #cbd5e1; line-height: 1.6; margin-bottom: 40px; max-width: 90%; font-weight: 500; }
+        .ws-btn-group { display: flex; gap: 15px; margin-bottom: 50px; }
+        .ws-btn-primary { background: var(--cyan-grad); border: none; padding: 16px 25px; border-radius: 16px; color: white; font-weight: 900; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; font-size: 12px; }
+        .ws-btn-primary:active { transform: scale(0.95); }
+        .ws-btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.2); padding: 16px 25px; border-radius: 16px; color: white; font-weight: 800; cursor: pointer; font-size: 12px; }
+        .ws-stats-container { display: flex; gap: 15px; margin-top: auto; }
+        .ws-stat-card { flex: 1; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 24px; backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: space-between;}
+        .ws-stat-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .ws-stat-title { font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
+        .ws-stat-val { font-size: 28px; font-weight: 900; color: white; }
     </style>
 </head>
 <body>
+
+    <div id="welcome-screen">
+        <div class="ws-header">
+            <div class="ws-brand"><i data-lucide="shield" style="width:16px; color:var(--primary);"></i> PRASAKA MASTER</div>
+            <div style="font-size:10px; color:#94a3b8; font-weight:800;">v2.0 PRO</div>
+        </div>
+        <div class="ws-badge">
+            <i data-lucide="crosshair" style="width:12px;"></i> Sistem Absensi Radar GPS
+        </div>
+        <h1 class="ws-title">Sistem Absensi Digital<br><span>Paskibra SMPN 22 Depok</span></h1>
+        <h2 class="ws-subtitle">untuk Pasukan PRASAKA</h2>
+        <p class="ws-desc">Meningkatkan kedisiplinan dan akurasi kehadiran anggota dengan teknologi radar modern dan verifikasi titik kumpul *real-time*.</p>
+        <div style="text-align: center; margin-bottom: 30px; opacity: 0.5;">
+            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); width: 80%; margin: 0 auto;"></div>
+        </div>
+        <div class="ws-btn-group">
+            <button onclick="masukKeLogin()" class="ws-btn-primary">Ke Dashboard <i data-lucide="arrow-right" style="width:14px;"></i></button>
+            <button class="ws-btn-secondary">Lihat Panduan</button>
+        </div>
+        <div class="ws-stats-container">
+            <div class="ws-stat-card">
+                <div class="ws-stat-head">
+                    <span class="ws-stat-title">Total Anggota</span>
+                    <i data-lucide="users" style="width:16px; color:#94a3b8;"></i>
+                </div>
+                <div class="ws-stat-val" id="ws-val-anggota">--</div>
+            </div>
+            <div class="ws-stat-card">
+                <div class="ws-stat-head">
+                    <span class="ws-stat-title">Status Sistem</span>
+                    <i data-lucide="radio" style="width:16px; color:var(--success);"></i>
+                </div>
+                <div class="ws-stat-val" style="font-size: 14px; color: var(--success); margin-top:auto;">ONLINE</div>
+            </div>
+        </div>
+    </div>
 
     <div id="loading-overlay" style="position:fixed; inset:0; background:#020617; z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; color:white;">
         <div style="width:50px; height:50px; border: 5px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s linear infinite;"></div>
@@ -87,7 +140,7 @@
         </div>
     </div>
 
-    <div id="auth-screen">
+    <div id="auth-screen" style="display: none;">
         <div class="auth-card">
             <h2 class="auth-title">ADMIN LOGIN</h2>
             <div id="login-form">
@@ -109,13 +162,12 @@
             </div>
         </div>
     </div>
-
-    <div id="main-admin-content">
+        <div id="main-admin-content">
         <div id="overlay" onclick="toggleSidebar()"></div>
         <div id="sidebar">
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:25px;">
                 <div class="avatar-circle" style="width:45px; height:45px; border-radius:15px; font-size:18px; margin:0;">A</div>
-                <div><h2 style="font-size:10px; color:var(--primary); font-weight:800;">Dashboard</h2><h1 id="admin-name-display" style="font-size:13px; font-weight:800;">ADMIN</h1></div>
+                <div><h2 style="font-size:10px; color:var(--primary); font-weight:800;">COMMAND</h2><h1 id="admin-name-display" style="font-size:13px; font-weight:800;">ADMIN</h1></div>
             </div>
             <div class="sb-nav">
                 <button onclick="sw('p-dash')" class="sb-link btn-dash"><i data-lucide="layout-grid"></i> Dashboard</button>
@@ -130,7 +182,7 @@
 
         <header>
             <button class="btn-menu" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
-            <h1 style="font-size:18px; font-weight:800;">PRASAKA Master</h1>
+            <h1 style="font-size:18px; font-weight:800;">PRASAKA Admin</h1>
         </header>
 
         <main>
@@ -158,7 +210,7 @@
                         <h3 id="st-telat" style="color:#ef4444;">0</h3>
                     </div>
                     <div class="card-stat" style="background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3);">
-                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL ANGGOTA</p>
+                        <p style="font-size:9px; font-weight:800; color: #c4b5fd; letter-spacing:1px;">TOTAL PASUKAN</p>
                         <h3 id="st-siswa" style="color:#8b5cf6;">0</h3>
                     </div>
                 </div>
@@ -214,9 +266,8 @@
 
                     <button onclick="logoutAdmin()" class="auth-btn" style="background:var(--red-grad); margin-top:10px;">KELUAR SESI</button>
                 </div>
-            </div>
-
-            <div id="p-log" class="page">
+                        </div>
+                                <div id="p-log" class="page">
                 <div class="glass-box">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3 style="font-size: 12px; font-weight: 800; color: var(--purple-grad);">LAPORAN ABSENSI</h3>
@@ -235,14 +286,14 @@
 
             <div id="p-set" class="page">
                 <div class="glass-box">
-                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-bottom: 15px;">PENGATURAN SISTEM</p>
+                    <p style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-bottom: 15px;">Pengaturan Sistem</p>
                     <label style="font-size:10px; font-weight:800; color:#94a3b8; display:block; margin-bottom:5px;">PENGUMUMAN</label>
                     <textarea id="s-ann" rows="2" style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border-radius:15px; color:white; border:1px solid var(--border); margin-bottom:15px;"></textarea>
                     
                     <label style="font-size:10px; font-weight:800; color:#94a3b8; display:block; margin-bottom:5px;">JAM LATIHAN</label>
                     <input type="time" id="s-tim" style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border-radius:15px; color:white; border:1px solid var(--border); margin-bottom:15px;">
                     
-                    <label style="font-size:10px; font-weight:800; color:#94a3b8; display:block; margin-bottom:5px;">LOKASI(GPS)</label>
+                    <label style="font-size:10px; font-weight:800; color:#94a3b8; display:block; margin-bottom:5px;">LOKASI (GPS)</label>
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
                         <input type="text" id="s-lat" placeholder="Latitude" style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border-radius:15px; color:white; border:1px solid var(--border);" readonly>
                         <input type="text" id="s-lng" placeholder="Longitude" style="width:100%; padding:15px; background:rgba(0,0,0,0.3); border-radius:15px; color:white; border:1px solid var(--border);" readonly>
@@ -257,7 +308,6 @@
     </div>
 
     <script>
-        // MASUKAN SCRIPT URL WEB APP LU 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxieMyuN0q4QbCHIQAYj4gMKj1U-AlF2NM1Elbvs11MITj5Wrgdafblkd-YkqDFFeUJ/exec"; 
 
         let globalLogs = [];
@@ -271,6 +321,16 @@
                 script.onerror = () => { document.body.removeChild(script); reject(new Error("Koneksi HQ Terputus!")); };
                 document.body.appendChild(script);
             });
+        }
+
+        async function fetchWelcomeStats() {
+            try {
+                const data = await requestData(`auth=true`);
+                if(data.status === "success") {
+                    const totalSiswa = data.siswa.filter(s => s.status === 'ACTIVE').length;
+                    document.getElementById('ws-val-anggota').innerText = totalSiswa;
+                }
+            } catch (e) { console.log("Gagal muat stats awal."); }
         }
 
         async function showSysDialog(opts) {
@@ -307,6 +367,14 @@
         function toggleAuth() { document.getElementById('login-form').classList.toggle('hidden'); document.getElementById('reg-form').classList.toggle('hidden'); }
         function logoutAdmin() { localStorage.removeItem('admin_auth'); location.reload(); }
 
+        function masukKeLogin() {
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('auth-screen').style.display = 'flex';
+            }, 500); 
+        }
+
         async function prosesRegisterAdmin() {
             const n = document.getElementById('r-name').value.trim();
             const e = document.getElementById('r-email').value.trim();
@@ -327,26 +395,50 @@
                 showSysDialog({title: "GAGAL", msg: "Koneksi terputus.", type: "error", color: "var(--danger)"});
             }
         }
-
+                // FUNGSI SV LAPORAN (VERSI EXCEL TABEL AUTOMATIS)
         function svLaporan() {
-            let csv = "Tanggal,Jam,Nama,Status,Keterangan\n";
             if(!globalLogs || globalLogs.length === 0) return alert("Data log kosong!");
-            globalLogs.forEach(l => {
-                let tgl = l.tanggal ? String(l.tanggal).substring(0,10) : "";
+            
+            // 1. Siapkan data Header & Baris
+            const dataHeader = [["TANGGAL", "JAM", "NAMA ANGGOTA", "STATUS", "KETERANGAN"]];
+            const dataRows = globalLogs.map(l => {
+                let tgl = l.tanggal ? String(l.tanggal).substring(0, 10) : "";
                 let jam = l.jam;
-                if(String(jam).includes('T')) { const d = new Date(jam); jam = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
-                csv += `"${tgl}","${jam}","${l.nama}","${l.status}","${l.keterangan || '-'}"\n`;
+                if (String(jam).includes('T')) {
+                    const d = new Date(jam);
+                    jam = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+                }
+                return [tgl, jam, l.nama.toUpperCase(), l.status, l.keterangan || '-'];
             });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `Laporan_PRASAKA_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.csv`;
-            a.click(); window.URL.revokeObjectURL(url);
+
+            // Gabung jadi satu array data
+            const finalData = dataHeader.concat(dataRows);
+
+            // 2. Buat Workbook & Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(finalData);
+
+            // 3. ATUR LEBAR KOLOM (OCH) Biar Rapi Ga Kepotong
+            ws['!cols'] = [
+                { wch: 15 }, // Tanggal
+                { wch: 10 }, // Jam
+                { wch: 30 }, // Nama
+                { wch: 15 }, // Status
+                { wch: 30 }  // Keterangan
+            ];
+
+            // 4. Masukin worksheet ke workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan Absensi");
+
+            // 5. Download file (.xlsx)
+            const dateStr = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            const fileName = `Laporan_PRASAKA_${dateStr}.xlsx`;
+            XLSX.writeFile(wb, fileName);
         }
 
-       function setLokasi() {
+        function setLokasi() {
             if (navigator.geolocation) {
                 document.getElementById('loading-overlay').style.display = 'flex';
-                // HAPUS { enableHighAccuracy: true } agar browser tidak memaksakan sinyal satelit jika lemah
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         document.getElementById('s-lat').value = pos.coords.latitude;
@@ -356,12 +448,10 @@
                     },
                     (err) => {
                         document.getElementById('loading-overlay').style.display = 'none';
-                        let errMsg = "Izin lokasi ditolak!";
-                        if (err.code === 2) errMsg = "Sinyal GPS tidak tersedia. Pastikan Location di HP menyala.";
-                        if (err.code === 3) errMsg = "Waktu pencarian GPS habis. Coba refresh halaman.";
+                        let errMsg = "Izin lokasi ditolak / Sinyal GPS tidak tersedia.";
                         showSysDialog({title:"GPS ERROR", msg:errMsg, type:"error", color:"var(--danger)"});
                     },
-                    { timeout: 10000, maximumAge: 0 } // Tambahkan ini agar tidak mengambil cache lokasi lama
+                    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
                 );
             } else { alert("Browser tidak mendukung GPS!"); }
         }
@@ -407,16 +497,11 @@
             fetchData();
         }
 
-        // FUNGSI UPDATE DASHBOARD 
         function updateDashboardUI(data) {
-            // 1. Data Kedisiplinan
-            const hariIni = new Date().toLocaleDateString('id-ID').substring(0,10); // Format DD/MM/YYYY lokal
+            const hariIni = new Date().toLocaleDateString('id-ID').substring(0,10); 
             const logHariIni = data.logs.filter(l => l.tanggal && String(l.tanggal).includes(hariIni));
-            
-            // Hindari duplikat nama, ambil status terbaru per anak
             const uniqueLogs = {};
             logHariIni.forEach(l => { if(!uniqueLogs[l.nama]) uniqueLogs[l.nama] = l.status; });
-            
             let countHadir = 0, countIzin = 0, countTelat = 0;
             Object.values(uniqueLogs).forEach(s => {
                 if(s === "TEPAT WAKTU" || s === "HADIR") countHadir++;
@@ -425,25 +510,23 @@
             });
 
             const totalAktif = data.siswa.filter(s => s.status === 'ACTIVE').length;
-            
             document.getElementById('st-hadir').innerText = countHadir;
             document.getElementById('st-izin').innerText = countIzin;
             document.getElementById('st-telat').innerText = countTelat;
             document.getElementById('st-siswa').innerText = totalAktif;
+            document.getElementById('ws-val-anggota').innerText = totalAktif > 0 ? totalAktif : '--';
 
-            // 2. Progress Bar
             let persentase = totalAktif > 0 ? Math.round((countHadir / totalAktif) * 100) : 0;
             document.getElementById('st-persen').innerText = `${persentase}%`;
             document.getElementById('bar-hadir').style.width = `${persentase}%`;
 
-            // 3. Status Banner
             const opInd = document.getElementById('op-indicator');
             const opText = document.getElementById('op-text');
             const jamLatihan = data.config.time || "";
 
             if (!jamLatihan || jamLatihan.trim() === "") {
                 opInd.className = "indicator ind-off";
-                opText.innerText = "MARKAS DITUTUP - TIDAK ADA JADWAL";
+                opText.innerText = "LOKASI DITUTUP - TIDAK ADA JADWAL";
                 opText.style.color = "#fca5a5";
             } else {
                 opInd.className = "indicator ind-on";
@@ -453,10 +536,8 @@
                 opText.style.color = "#6ee7b7";
             }
 
-            // 4. Live Radar (3 Log Terakhir)
             const radarBox = document.getElementById('live-radar-list');
-            const radarData = data.logs.reverse().slice(0, 3); // Ambil 3 teratas
-            
+            const radarData = data.logs.reverse().slice(0, 3); 
             radarBox.innerHTML = radarData.map(l => {
                 let j = l.jam;
                 if(String(j).includes('T')) { const d = new Date(j); j = d.getHours().toString().padStart(2,'0')+":"+d.getMinutes().toString().padStart(2,'0'); }
@@ -476,17 +557,14 @@
             const data = await requestData(`auth=true`);
             if(data.status === "success") {
                 globalLogs = data.logs; 
-                
                 document.getElementById('s-ann').value = data.config.ann || "";
                 document.getElementById('s-lat').value = data.config.lat || "";
                 document.getElementById('s-lng').value = data.config.lng || "";
-                
                 let jamRapi = data.config.time || "";
                 if (jamRapi.includes('T')) { const d = new Date(jamRapi); jamRapi = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
                 document.getElementById('s-tim').value = jamRapi;
-                
                 generateQR();
-                updateDashboardUI(data); // Panggil fungsi dashboard baru
+                updateDashboardUI(data); 
 
                 document.getElementById('grid-all').innerHTML = data.siswa.map(s=>`
                     <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 4px;">
@@ -531,7 +609,7 @@
             await showSysDialog({title:"SUKSES", msg:"Anggota disetujui!", type:"success", color:"var(--success)"}); 
             fetchData(); 
         }
-        
+
         async function hapusData(sheet, id) {
             const ok = await showSysDialog({title: "KONFIRMASI", msg: "Hapus data ini secara permanen?", showCancel: true, color: "var(--danger)"});
             if(!ok) return;
@@ -540,38 +618,21 @@
             document.getElementById('loading-overlay').style.display = 'none';
         }
 
-               async function save() { 
+        async function save() { 
             const lat = document.getElementById('s-lat').value;
             const lng = document.getElementById('s-lng').value;
-
-            // VALIDASI: Jangan kasih simpan kalau GPS belum kekunci
-            if(!lat || !lng || lat === "" || lng === "") {
-                return showSysDialog({title:"GAGAL", msg:"Lu belum kunci lokasi latihan! Klik tombol 'KUNCI KOORDINAT' dulu.", type:"error", color:"var(--danger)"});
-            }
-
+            if(!lat || !lng || lat === "" || lng === "") { return showSysDialog({title:"GAGAL", msg:"Lu belum kunci lokasi latihan! Klik tombol 'KUNCI KOORDINAT' dulu.", type:"error", color:"var(--danger)"}); }
             document.getElementById('loading-overlay').style.display = 'flex';
-            
-            // Kita pake tol=100 biar lega
             const body = `action=updateSettings&ann=${encodeURIComponent(document.getElementById('s-ann').value)}&time=${encodeURIComponent(document.getElementById('s-tim').value)}&lat=${lat}&lng=${lng}&tol=100`;
-            
-            try {
-                await requestData(body);
-                document.getElementById('loading-overlay').style.display = 'none';
-                await showSysDialog({title:"BERHASIL", msg:"Lokasi Latihan & Jadwal Terupdate!", type:"success", color:"var(--success)"});
-                fetchData();
-            } catch(e) {
-                document.getElementById('loading-overlay').style.display = 'none';
-                showSysDialog({title:"EROR", msg:"Gagal koneksi ke pusat.", type:"error", color:"var(--danger)"});
-            }
+            try { await requestData(body); document.getElementById('loading-overlay').style.display = 'none'; await showSysDialog({title:"BERHASIL", msg:"Lokasi Latihan & Jadwal Terupdate!", type:"success", color:"var(--success)"}); fetchData(); } catch(e) { document.getElementById('loading-overlay').style.display = 'none'; showSysDialog({title:"EROR", msg:"Gagal koneksi ke pusat.", type:"error", color:"var(--danger)"}); }
         }
-
 
         async function resetJam() { 
             const ok = await showSysDialog({title: "RESET JADWAL", msg: "Kosongkan jam latihan hari ini?", showCancel: true, color: "var(--danger)"});
             if(!ok) return;
             document.getElementById('loading-overlay').style.display = 'flex';
             const ann = document.getElementById('s-ann').value; const lat = document.getElementById('s-lat').value; const lng = document.getElementById('s-lng').value;
-            await requestData(`action=updateSettings&ann=${encodeURIComponent(ann)}&time=&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&tol=15`);
+            await requestData(`action=updateSettings&ann=${encodeURIComponent(ann)}&time=&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&tol=100`);
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('s-tim').value = ""; generateQR(); 
             await showSysDialog({title:"RESET SUKSES", msg:"Jadwal telah ditutup.", type:"success", color:"var(--success)"});
@@ -581,8 +642,10 @@
         window.onload = () => { 
             lucide.createIcons();
             const s = localStorage.getItem('admin_auth'); 
-            if(s) masukKeDashboard(JSON.parse(s).info);
+            fetchWelcomeStats(); 
+            if(s) { document.getElementById('welcome-screen').style.display = 'none'; masukKeDashboard(JSON.parse(s).info); }
         };
     </script>
 </body>
 </html>
+    
