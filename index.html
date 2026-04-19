@@ -395,12 +395,14 @@
                 showSysDialog({title: "GAGAL", msg: "Koneksi terputus.", type: "error", color: "var(--danger)"});
             }
         }
-                // FUNGSI SV LAPORAN (VERSI EXCEL TABEL AUTOMATIS)
+
+        // FUNGSI SV LAPORAN (VERSI EXCEL KOLOM SHEET1)
         function svLaporan() {
             if(!globalLogs || globalLogs.length === 0) return alert("Data log kosong!");
             
-            // 1. Siapkan data Header & Baris
-            const dataHeader = [["TANGGAL", "JAM", "NAMA ANGGOTA", "STATUS", "KETERANGAN"]];
+            // Siapkan Header sesuai Sheet1 lu
+            const dataHeader = [["Tanggal", "Jam", "Nama", "Status", "Poin", "Keterangan"]];
+            
             const dataRows = globalLogs.map(l => {
                 let tgl = l.tanggal ? String(l.tanggal).substring(0, 10) : "";
                 let jam = l.jam;
@@ -408,32 +410,27 @@
                     const d = new Date(jam);
                     jam = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
                 }
-                return [tgl, jam, l.nama.toUpperCase(), l.status, l.keterangan || '-'];
+                // Ambil data sesuai format Sheet1
+                return [tgl, jam, (l.nama || "-").toUpperCase(), l.status || "-", l.poin || "-", l.keterangan || "-"];
             });
 
-            // Gabung jadi satu array data
             const finalData = dataHeader.concat(dataRows);
-
-            // 2. Buat Workbook & Worksheet
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(finalData);
 
-            // 3. ATUR LEBAR KOLOM (OCH) Biar Rapi Ga Kepotong
+            // Bikin Lebar Kolom Biar Rapi Kaya Tabel Admin
             ws['!cols'] = [
                 { wch: 15 }, // Tanggal
                 { wch: 10 }, // Jam
                 { wch: 30 }, // Nama
                 { wch: 15 }, // Status
+                { wch: 10 }, // Poin
                 { wch: 30 }  // Keterangan
             ];
 
-            // 4. Masukin worksheet ke workbook
             XLSX.utils.book_append_sheet(wb, ws, "Laporan Absensi");
-
-            // 5. Download file (.xlsx)
             const dateStr = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
-            const fileName = `Laporan_PRASAKA_${dateStr}.xlsx`;
-            XLSX.writeFile(wb, fileName);
+            XLSX.writeFile(wb, `Rekap_Absen_Prasaka_${dateStr}.xlsx`);
         }
 
         function setLokasi() {
@@ -579,6 +576,7 @@
                     </div>
                 `).join('');
 
+                // TOMBOL HAPUS LOG DIKEMBALIKAN DI SINI
                 document.getElementById('tb-log').innerHTML = data.logs.map(l => {
                     let j = l.jam || '--:--';
                     if(String(j).includes('T')) { const d = new Date(j); j = d.getHours().toString().padStart(2,'0') + ":" + d.getMinutes().toString().padStart(2,'0'); }
@@ -589,7 +587,15 @@
                     let ketText = l.keterangan ? l.keterangan : (l.status === 'IZIN' ? 'Tanpa Alasan' : 'Scan QR');
                     return `
                     <div class="data-row" style="align-items: flex-start; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;"><b style="font-size: 13px; text-transform: uppercase;">${l.nama}</b><span class="status-tag ${statusClass}" style="${statusStyle}">${l.status}</span></div>
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <b style="font-size: 13px; text-transform: uppercase;">${l.nama}</b>
+                                <span class="status-tag ${statusClass}" style="${statusStyle}">${l.status}</span>
+                            </div>
+                            <button onclick="hapusData('Log', ${l.rowId})" style="color:var(--danger); background:none; border:none; cursor:pointer; padding:5px;">
+                                <i data-lucide="trash-2" style="width:14px;"></i>
+                            </button>
+                        </div>
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
                             <small style="color: #94a3b8; font-weight: 700; font-size: 10px; display:flex; align-items:center; gap:4px;"><i data-lucide="clock" style="width:12px; height:12px;"></i> ${tglRapi} | ${j}</small>
                             <small style="color: #cbd5e1; font-weight: 600; font-size: 10px; max-width: 50%; text-align: right; font-style: italic;">(${ketText})</small>
@@ -648,4 +654,3 @@
     </script>
 </body>
 </html>
-    
